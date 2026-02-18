@@ -54,6 +54,18 @@ def get_activities():
 
 @app.post("/activities/{activity_name}/signup")
 def signup_for_activity(activity_name: str, email: str):
+    normalized_email = email.strip().lower()
+
+    if not normalized_email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    # Validate student is not already signed up
+    if activity_name in activities:
+        normalized_participants = {participant.strip().lower(
+        ) for participant in activities[activity_name]["participants"]}
+        if normalized_email in normalized_participants:
+            raise HTTPException(
+                status_code=400, detail="Student already signed up for this activity")
     """Sign up a student for an activity"""
     # Validate activity exists
     if activity_name not in activities:
@@ -63,5 +75,5 @@ def signup_for_activity(activity_name: str, email: str):
     activity = activities[activity_name]
 
     # Add student
-    activity["participants"].append(email)
-    return {"message": f"Signed up {email} for {activity_name}"}
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
